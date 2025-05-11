@@ -19,6 +19,16 @@ bool isAlphaOnly(const string &str)
     return regex_match(str, pattern);
 }
 
+
+enum class status
+{
+    FAILED,
+    SUCCESS,
+    PROCESSING,
+    CANCELED
+};
+
+
 class student
 {
     int u_id; // user id
