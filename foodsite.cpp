@@ -8,6 +8,11 @@
 
 using namespace std;
 
+class reservation;
+class meal;
+class student;
+class diningHall;
+
 bool isAlphaOnly(const string &str)
 {
     regex pattern("^[a-zA-Z]+$");
