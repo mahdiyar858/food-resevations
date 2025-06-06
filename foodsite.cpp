@@ -5,6 +5,7 @@
 #include <cctype>    // Required for isdigit(), isalpha()
 #include <stdexcept> // for invalid arguments
 #include <limits>    // for igonor
+#include <ctime>    // for time
 
 using namespace std;
 
@@ -19,15 +20,12 @@ bool isAlphaOnly(const string &str)
     return regex_match(str, pattern);
 }
 
-
 enum class status
 {
-    FAILED,
-    SUCCESS,
-    PROCESSING,
-    CANCELED
+    FAILED = 1,
+    SUCCESS = 2,
+    CANCELED = 3
 };
-
 
 class student
 {
@@ -308,8 +306,8 @@ public:
 
     void print() const
     {
-        cout << "\nname : " << name;
-        cout << "\nfamily : " << f_name;
+        cout << "\nstudent name : " << name;
+        cout << "\nstudent family : " << f_name;
         cout << "\nuser ID : " << u_id;
         cout << "\nstudent id : " << s_id;
         cout << "\nemail : " << email;
@@ -318,3 +316,171 @@ public:
     }
 };
 
+class reservation
+{
+    int reservation_id;
+    student Student;
+    diningHall *Hall;
+    meal *Meal;
+    status condition;
+    time_t created_at;
+
+public:
+    reservation(int i, const student &s, diningHall *h, meal *m, const status &c, const time_t &t)
+    {
+        set_reservation_id(i);
+        set_student(s);
+        set_dinighall(h);
+        set_meal(m);
+        set_condition(c);
+        set_created_at(t);
+    }
+
+    reservation()
+    {
+        reservation_id = 0;
+        Student = student();
+        Hall = nullptr;
+        Meal = nullptr;
+        condition = (status ::FAILED);
+        created_at = time(nullptr);
+    }
+
+    void set_reservation_id(int id)
+    {
+        if (id >= 001 && id < 732)
+        {
+            reservation_id = id;
+        }
+        else
+        {
+            throw invalid_argument("\nThe reservation ID must be bewteen one and seven hundred and seventy seven");
+        }
+    }
+
+    void set_student(student s)
+    {
+        Student = s;
+    }
+
+    void set_dinighall(diningHall *h)
+    {
+        Hall = h;
+    }
+
+    void set_meal(meal *m)
+    {
+        Meal = m;
+    }
+
+    void set_condition(status c)
+    {
+        condition = c;
+    }
+
+    void set_created_at(time_t t)
+    {
+        created_at = t;
+    }
+
+    int get_reservation_id() const
+    {
+        return reservation_id;
+    }
+
+    student get_student() const
+    {
+        return Student;
+    }
+
+    diningHall *get_hall() const
+    {
+        return Hall;
+    }
+
+    meal *get_meal() const
+    {
+        return Meal;
+    }
+
+    status get_condtion() const
+    {
+        return condition;
+    }
+
+    int get_time() const
+    {
+        return created_at;
+    }
+
+    void input()
+    {
+
+        while (true) // reservation ID
+        {
+            cout << "\nEnter the reservation ID";
+            if (cin >> reservation_id)
+            {
+                try
+                {
+                    set_reservation_id(reservation_id);
+                    cin.ignore(numeric_limits<streamsize>::max(), '\n');
+                    break;
+                }
+                catch (const invalid_argument &e)
+                {
+                    cout << "\nError\n"
+                         << e.what() << endl;
+                }
+            }
+            else
+            {
+                cout << "The reservation ID must be only numbers";
+            }
+        }
+
+        created_at = time(nullptr);
+        
+        condition = status::SUCCESS;
+    }
+
+    void cancle()
+    {
+        condition = status::CANCELED;
+    }
+
+    string statusToString(status s) const
+    {
+        switch (s)
+        {
+        case status::FAILED:
+            return "Failed";
+        case status::SUCCESS:
+            return "Success";
+        case status::CANCELED:
+            return "Canceled";
+        default:
+            return "Unknown";
+        }
+    }
+
+    void print() const
+    {
+        if (statusToString(condition) == "Success")
+        {
+            cout << "reservation ID = " << reservation_id << endl;
+            Student.print();
+            Hall->print();
+            Meal->print();
+            cout << endl
+                 << statusToString(condition);
+            struct tm *time = localtime(&created_at);
+            cout<<endl<<put_time(time, "%Y/%m/%d %H:%M:%S");
+        }
+        else
+        {
+            cout << endl
+                 << statusToString(condition);
+        }
+    }
+};
