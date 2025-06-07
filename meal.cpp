@@ -94,3 +94,23 @@ std::vector<std::string> meal::get_side_items()const
 {
     return side_items;
 }
+
+void meal::print()const
+{
+    std::cout<<"\nmeal ID = "<<get_meal_id()
+        <<"\n food name = "<<get_name()
+        <<"\nprice = "<<get_price()
+        <<"\nmeal type = "<<static_cast<int>(meal_type)
+        <<"\nside items = ";
+
+    bool firstItem = true; // Track if it's the first item
+    for (const auto &item : side_items)
+    {
+        if (!firstItem)
+        {
+            std::cout << ", "; // Print comma only after the first item
+        }
+        std::cout << item;
+        firstItem = false;
+    }
+}

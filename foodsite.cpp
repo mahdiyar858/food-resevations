@@ -8,6 +8,7 @@
 #include <ctime>    // for time
 #include <chrono>   // also for time
 #include <meal.h>
+#include <diningHall.h>
 
 using namespace std;
 
