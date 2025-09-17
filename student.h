@@ -1,49 +1,51 @@
 #ifndef STUDENT_H
 #define STUDENT_H
+
+#include "user.h"
 #include <vector>
 #include <string>
 #include <memory>
-#include <vector>
 
-class reservation;
+class Reservation;
 
-class Student
-{
-    int u_id;
-    std::string s_id;
-    std::string name;
-    std::string f_name;
+class Student : public User {
+private:
+    std::string studentID;
     std::string email;
+    std::string phone;
     float balance;
-    bool activity;
-    std::vector<std::unique_ptr<reservation>> reservations;
+    bool isActive;
+    std::vector<std::unique_ptr<Reservation>> reserves;
 
 public:
-    Student();
-    Student(int, const std::string &, const std::string &,
-            const std::string &, const std::string &, float , std::string);
-
-    void student_input();
-    void student_print() const;
-    void add_Reservation();
-
-    int get_student_user_id() const;
-    std::string get_student_id()const;
-    std::string get_student_name()const;
-    std::string get_student_family_name()const;
-    std::string get_student_email()const;
-    float get_student_balance()const;
-    bool get_student_status()const;
-
-    void set_student_user_id(int);
-    void set_student_id(const std::string &);
-    void set_student_name(const std::string &);
-    void set_student_family_name(const std::string &);
-    void set_student_email(const std::string &);
-    void set_student_balance(float);
-    void set_student_status(std::string);
-    void set_student_reservation(std::vector <reservation> , int);
+    Student(int u_id = 0, const std::string& s_id = "", const std::string& n = "",
+            const std::string& f = "", const std::string& e = "", 
+            float b = 0.0f, const std::string& phone = "", bool active = true);
     
+    void student_input();
+    void print() const override;
+    void add_Reservation();
+    
+    // New methods for Phase 2
+    bool getIsActive() const;
+    void activate();
+    void deactivate();
+    void reserveMeal();
+    void cancelReservation(int reservationID);
+    
+    // Getters and setters
+    std::string getStudentID() const;
+    void setStudentID(const std::string& id);
+    std::string getEmail() const;
+    void setEmail(const std::string& e);
+    std::string getPhone() const;
+    void setPhone(const std::string& p);
+    float getBalance() const;
+    void setBalance(float b);
+    void setIsActive(bool active);
+    std::vector<std::unique_ptr<Reservation>>& getReserves();
+    
+    std::string getType() const override;
 };
 
 #endif

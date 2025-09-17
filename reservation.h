@@ -1,53 +1,46 @@
-#ifndef RESERVATION_H // Include guard: Prevents the header from being included multiple times
-#define RESERVATION_H // in a single compilation unit, avoiding redefinition errors.
+#ifndef RESERVATION_H
+#define RESERVATION_H
 
-class Student;
+#include "diningHall.h"
+#include "meal.h"
+#include <ctime>
 
-enum status
+enum class RStatus
 {
     FAILED = 1,
     SUCCESS = 2,
     CANCELED = 3
 };
 
-enum class Weekday
+class Reservation
 {
-    SATURDAY = 1,
-    SUNDAY = 2,
-    MONDAY = 3,
-    TUESDAY = 4,
-    WEDNESDAY = 5,
-    THURSDAY = 6,
-    FRIDAY = 7
-};
-
-class reservation
-{
-    int reservation_ID;
-    diningHall *hall;
-    meal *Meal;
-    status condition;
-    time_t created_at;
+private:
+    int reservationID;
+    DiningHall *hall;
+    Meal *meal;
+    RStatus status;
+    time_t createdAT;
 
 public:
-    reservation();
-    reservation(int ,diningHall *, meal *, status, time_t);
-
+    Reservation(std::string = nullptr, DiningHall *h = nullptr, Meal *m = nullptr,
+                RStatus s = RStatus::FAILED, time_t t = 0);
+                
     void reservation_input();
-    void reservation_print();
+    void print() const;
     void reservation_cancel();
 
+    // Getters and setters
     int get_reservation_ID() const;
-    diningHall get_reservation_hall() const;
-    meal get_reservation_meal() const;
-    status get_reservation_condition() const;
-    time_t get_reservation_created_at() const;
+    DiningHall *get_reservation_hall() const;
+    Meal *get_reservation_meal() const;
+    RStatus get_status() const;
+    time_t get_created_at() const;
 
-    void set_reservation_ID(int , const status &);
-    void set_reservation_hall(diningHall *);
-    void set_reservation_meal(meal *);
-    void set_reservation_condition(const status);
-    void set_reservation_created_at(const time_t &);
+    void set_reservation_ID(std::string);
+    void set_reservation_hall(DiningHall *h);
+    void set_reservation_meal(Meal *m);
+    void set_status(RStatus s);
+    void set_created_at(time_t t);
 };
 
 #endif

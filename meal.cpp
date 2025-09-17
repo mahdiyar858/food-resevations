@@ -4,35 +4,20 @@
 #include <string>
 #include <vector>
 #include <stdexcept>
-#include <limits> // for igonor
+#include <limits>
 #include <fstream>
-#include <cmath> // for NAN
+#include <cmath>
 
-std::string meal::breakfast_File = "breakfast_meals.dat";
-std::string meal::lunch_File = "lunch_meals.dat";
-std::string meal::dinner_File = "dinner_meal.dat";
-std::string meal::side_dish_File = "side_dish.dat";
-std::string meal::price_File = "price_file.dat";
+std::string Meal::breakfast_File = "breakfast_meals.dat";
+std::string Meal::lunch_File = "lunch_meals.dat";
+std::string Meal::dinner_File = "dinner_meal.dat";
+std::string Meal::side_dish_File = "side_dish.dat";
+std::string Meal::price_File = "price_file.dat";
 
-meal::meal()
-{
-    meal_id = 0;
-    price = 0.0;
-    meal_name = "unknown";
-    meal_type = typo::unknown;
-    side_item = "unknown";
-}
+Meal::Meal(int id, const std::string& n, float p, bool active, MealType type, ReserveDay day)
+    : mealID(id), name(n), price(p), isActive(active), mealType(type), reserveDay(day) {}
 
-meal::meal(int id, const std::string &m, typo t, const std::string &s)
-{
-    set_meal_id();
-    set_meal_price();
-    set_meal_name(m);
-    set_meal_type(t);
-    set_meal_side_item(s);
-}
-
-bool meal::initialize_meal_file()
+bool Meal::initialize_meal_file()
 {
     std::ofstream b_file(breakfast_File, std::ios::app);
     std::ofstream l_file(lunch_File, std::ios::app);
@@ -53,11 +38,10 @@ bool meal::initialize_meal_file()
     p_file.close();
 
     std::cout << "\nMeal files and price file are checked successfully!\n";
-
     return true;
 }
 
-bool meal::default_meal_price()
+bool Meal::default_meal_price()
 {
     std::ofstream p_file(price_File, std::ios::out);
 
@@ -67,33 +51,26 @@ bool meal::default_meal_price()
         return false;
     }
 
-    for (int i = 0; i < 4; i++)
-    {
-        if (i == 3)
-        {
-            p_file << 5;
-        }
-
-        p_file << 15;
-    }
+    p_file << "15\n"; // Breakfast price
+    p_file << "20\n"; // Lunch price
+    p_file << "25\n"; // Dinner price
+    p_file << "5\n";  // Side dish price
 
     p_file.close();
     return true;
 }
 
-int meal::meal_counting_meal(const std::string &filename) // for counting the meal and also for side items!
+int Meal::meal_counting_meal(const std::string &filename)
 {
     std::ifstream file(filename);
-
     if (!file.is_open())
     {
-        std::cout << ("\nthere is a problem with the file! (cannot open the file)\n");
+        std::cout << "\nthere is a problem with the file! (cannot open the file)\n";
         return -1;
     }
 
     int count = 0;
     std::string line;
-
     while (getline(file, line))
     {
         if (!line.empty() && line.find_first_not_of("\t\n\r") != std::string::npos)
@@ -106,7 +83,7 @@ int meal::meal_counting_meal(const std::string &filename) // for counting the me
     return count;
 }
 
-void meal::meal_adding_meal(const std::string &filename)
+void Meal::meal_adding_meal(const std::string &filename)
 {
     int meal_count = meal_counting_meal(filename);
     if (meal_count >= maximum_food || meal_count == -1)
@@ -158,7 +135,7 @@ void meal::meal_adding_meal(const std::string &filename)
             }
         }
 
-        if (exists == false)
+        if (!exists)
         {
             file << food << std::endl;
             meals.push_back(food);
@@ -179,9 +156,9 @@ void meal::meal_adding_meal(const std::string &filename)
     file.close();
 }
 
-void meal::deleting_meal_side(const std::string &filename)
+void Meal::deleting_meal_side(const std::string &filename)
 {
-    std::vector<std::string> names = {};
+    std::vector<std::string> names;
     std::string meal;
     std::ifstream temp_file(filename, std::ios::in);
     if (!temp_file.is_open())
@@ -189,34 +166,42 @@ void meal::deleting_meal_side(const std::string &filename)
         std::cout << "\nCannot open the file\n";
         return;
     }
+    
     while (temp_file >> meal)
     {
         names.push_back(meal);
     }
     temp_file.close();
+    
     std::cout << "\nenter which meal do you want to delete!\n";
     std::cin >> meal;
-    for (int i = 0; i < names.size(); i++)
+    
+    for (size_t i = 0; i < names.size(); i++)
     {
         if (meal == names[i])
         {
-            names[i].erase();
+            names.erase(names.begin() + i);
+            break;
         }
     }
+    
     std::ofstream file(filename, std::ios::out);
     for (auto &element : names)
     {
         file << element << std::endl;
     }
+    file.close();
 }
-void meal::update_meal_price(const std::string &filename)
+
+void Meal::update_meal_price(const std::string &filename)
 {
     std::string temp_file = "temp.dat";
     std::string ans;
-    std::vector<float> price = {};
+    std::vector<float> prices;
     float line;
     int current_line = 0;
     int temp_line = 1;
+    
     std::ifstream file(filename);
     std::ofstream t_file(temp_file, std::ios::out);
 
@@ -226,25 +211,13 @@ void meal::update_meal_price(const std::string &filename)
         return;
     }
 
-    std::cout << "\nwhich meal price do you want to update? (enter side dish if you desire to change that)\n";
+    std::cout << "\nwhich meal price do you want to update? (breakfast/lunch/dinner/side dish)\n";
     std::cin >> ans;
 
-    if (ans == "breakfast")
-    {
-        current_line = 1;
-    }
-    else if (ans == "lunch")
-    {
-        current_line = 2;
-    }
-    else if (ans == "dinner")
-    {
-        current_line = 3;
-    }
-    else if (ans == "side dish")
-    {
-        current_line = 4;
-    }
+    if (ans == "breakfast") current_line = 1;
+    else if (ans == "lunch") current_line = 2;
+    else if (ans == "dinner") current_line = 3;
+    else if (ans == "side dish") current_line = 4;
 
     if (current_line == 0)
     {
@@ -256,23 +229,24 @@ void meal::update_meal_price(const std::string &filename)
     {
         if (current_line == temp_line)
         {
-            std::cout << "\nThe current price is " << line << "\nEnter the the new price\n";
+            std::cout << "\nThe current price is " << line << "\nEnter the new price\n";
             std::cin >> line;
         }
-        price.push_back(line);
+        prices.push_back(line);
         temp_line++;
     }
 
-    if (price.empty())
+    if (prices.empty())
     {
         file.close();
         t_file.close();
-        std::remove(temp_file.c_str()); // Delete the temp file
+        std::remove(temp_file.c_str());
         std::cout << "\nthe file is empty!\n";
         default_meal_price();
+        return;
     }
 
-    for (auto &element : price)
+    for (auto &element : prices)
     {
         t_file << element << std::endl;
     }
@@ -295,12 +269,12 @@ void meal::update_meal_price(const std::string &filename)
     std::cout << "\nPrice successfully updated!\n";
 }
 
-void meal::adding_meal_side_items(const std::string &filename)
+void Meal::adding_meal_side_items(const std::string &filename)
 {
     int count = meal_counting_meal(filename);
     if (count >= maximum_side_dish || count == -1)
     {
-        std::cout << "\nyou can not add any side dish!copacity error !\n";
+        std::cout << "\nyou can not add any side dish! capacity error!\n";
         return;
     }
 
@@ -323,13 +297,15 @@ void meal::adding_meal_side_items(const std::string &filename)
 
     while (true)
     {
-        if (count >= 9 || count == 0)
+        if (count >= maximum_side_dish)
         {
-            std::cout << "\nyou can not add any side dish!copacity error or file erro!\n";
-            return;
+            std::cout << "\nyou can not add any side dish! capacity error!\n";
+            break;
         }
-        std::cout << "\enter the side dish you want to add!\n";
+        
+        std::cout << "\nenter the side dish you want to add!\n";
         std::cin >> side_dish;
+        
         bool exist = false;
         for (const auto &element : sides)
         {
@@ -339,14 +315,17 @@ void meal::adding_meal_side_items(const std::string &filename)
                 break;
             }
         }
-        if (exist == false)
+        
+        if (!exist)
         {
             file << side_dish << std::endl;
-            std::cout << "\nside " << side_dish << "added successfully!\n";
+            sides.push_back(side_dish);
+            std::cout << "\nside " << side_dish << " added successfully!\n";
+            count++;
         }
         else
         {
-            std::cout << "\nYou can not add to the side dish because the side dish is already exist!\n";
+            std::cout << "\nYou can not add to the side dish because the side dish already exists!\n";
         }
 
         std::string ans;
@@ -354,130 +333,132 @@ void meal::adding_meal_side_items(const std::string &filename)
         std::cin >> ans;
         if (ans != "yes")
         {
-            file.close();
             break;
         }
     }
     file.close();
 }
 
-void meal::set_meal_id()
+// Phase 2 New Methods
+bool Meal::getIsActive() const
 {
-    std::string food_name = get_meal_name();
-    std::string side_name = get_meal_side_item();
-    std::string fs_temp;
-    int ID = 0000;
-    int side = 0;
-    typo temp = get_meal_type();
-    switch (temp)
+    return isActive;
+}
+
+void Meal::activate()
+{
+    isActive = true;
+}
+
+void Meal::deactivate()
+{
+    isActive = false;
+}
+
+MealType Meal::getMealType() const
+{
+    return mealType;
+}
+
+ReserveDay Meal::getReserveDay() const
+{
+    return reserveDay;
+}
+
+void Meal::setMealType(MealType type)
+{
+    mealType = type;
+}
+
+void Meal::setReserveDay(ReserveDay day)
+{
+    reserveDay = day;
+}
+
+void Meal::addSideItem(const std::string& item)
+{
+    if (sideItems.size() < maximum_side_dish)
     {
-    case typo::breakfast:
+        sideItems.push_back(item);
+    }
+    else
+    {
+        std::cout << "\nCannot add more side items. Maximum limit reached.\n";
+    }
+}
+
+void Meal::addPrice(float newPrice)
+{
+    price = newPrice;
+}
+
+void Meal::set_meal_id()
+{
+    int ID = 0;
+    std::string food_name = get_meal_name();
+    std::string fs_temp;
+    
+    switch (mealType)
+    {
+    case MealType::BREAKFAST:
     {
         std::ifstream count(breakfast_File, std::ios::in);
         while (count >> fs_temp)
         {
+            ID++;
             if (fs_temp == food_name)
             {
-                ID = (ID * 10) + 1000;
-                count.close();
                 break;
             }
-
-            ID++;
         }
-        std::ifstream count(side_dish_File, std::ios::in);
-        while (count >> fs_temp)
-        {
-            if (fs_temp == side_name)
-            {
-                ID = ID + side;
-                count.close();
-                break;
-            }
-            side++;
-        }
+        count.close();
+        break;
     }
-    case typo::lunch:
+    case MealType::LUNCH:
     {
         std::ifstream count(lunch_File, std::ios::in);
         while (count >> fs_temp)
         {
+            ID++;
             if (fs_temp == food_name)
             {
-                ID = (ID * 10) + 1000;
-                count.close();
                 break;
             }
-
-            ID++;
         }
-        std::ifstream count(side_dish_File, std::ios::in);
-        while (count >> fs_temp)
-        {
-            if (fs_temp == side_name)
-            {
-                ID = ID + side;
-                count.close();
-                break;
-            }
-            side++;
-        }
+        count.close();
+        break;
     }
-    case typo::dinner:
+    case MealType::DINNER:
     {
-        std::ifstream count(lunch_File, std::ios::in);
+        std::ifstream count(dinner_File, std::ios::in);
         while (count >> fs_temp)
         {
+            ID++;
             if (fs_temp == food_name)
             {
-                ID = (ID * 10) + 1000;
-                count.close();
                 break;
             }
-
-            ID++;
         }
-        std::ifstream count(side_dish_File, std::ios::in);
-        while (count >> fs_temp)
-        {
-            if (fs_temp == side_name)
-            {
-                ID = ID + side;
-                count.close();
-                break;
-            }
-            side++;
-        }
+        count.close();
+        break;
     }
     default:
-    {
-        meal_id = 0000;
+        mealID = 0;
         return;
     }
-    }
 
-    if (ID % 10 == 100 || ID % 10 == 200 || ID % 10 == 300)
-    {
-        meal_id = 0000;
-    }
-    else if (ID == 3000 || ID == 2000 || ID == 1000)
-    {
-        meal_id = 0000;
-    }
-    else
-    {
-        meal_id == ID;
-    }
+    // Add side item code if needed
+    mealID = ID;
 }
 
-void meal::set_meal_name(const std::string &name)
+void Meal::set_meal_name(const std::string &n)
 {
-    std::vector<std::string> foods = {};
+    std::vector<std::string> foods;
     std::string food;
-    typo temp = get_meal_type();
-    switch (temp)
+    
+    switch (mealType)
     {
-    case typo::breakfast:
+    case MealType::BREAKFAST:
     {
         std::ifstream search(breakfast_File);
         if (!search.is_open())
@@ -490,21 +471,26 @@ void meal::set_meal_name(const std::string &name)
         {
             foods.push_back(food);
         }
-
         search.close();
-
-        for (const auto &element : foods)
+        break;
+    }
+    case MealType::LUNCH:
+    {
+        std::ifstream search(lunch_File);
+        if (!search.is_open())
         {
-            if (element == food)
-            {
-                meal_name = food;
-                return;
-            }
+            std::cout << "\nCan not open the file\n!";
+            return;
         }
 
-        throw std::invalid_argument("\nyou can not choose a meal because it's not in the list!\n");
+        while (search >> food)
+        {
+            foods.push_back(food);
+        }
+        search.close();
+        break;
     }
-    case typo::lunch:
+    case MealType::DINNER:
     {
         std::ifstream search(dinner_File);
         if (!search.is_open())
@@ -517,74 +503,31 @@ void meal::set_meal_name(const std::string &name)
         {
             foods.push_back(food);
         }
-
         search.close();
-
-        for (const auto &element : foods)
-        {
-            if (element == food)
-            {
-                meal_name = food;
-                return;
-            }
-        }
-
-        throw std::invalid_argument("\nyou can not choose a meal because it's not in the list!\n");
-    }
-    case typo::dinner:
-    {
-        std::ifstream search(dinner_File);
-        if (!search.is_open())
-        {
-            std::cout << "\nCan not open the file\n!";
-            return;
-        }
-
-        while (search >> food)
-        {
-            foods.push_back(food);
-        }
-
-        search.close();
-
-        for (const auto &element : foods)
-        {
-            if (element == food)
-            {
-                meal_name = food;
-                return;
-            }
-        }
-
-        throw std::invalid_argument("\nyou can not choose a meal because it's not in the list!\n");
+        break;
     }
     default:
+        throw std::invalid_argument("\nInvalid meal type!\n");
+    }
+
+    for (const auto &element : foods)
     {
-        throw std::invalid_argument("\nyou can not choose a meal because it's not in the list!\n");
+        if (element == n)
+        {
+            name = n;
+            return;
+        }
     }
-    }
+
+    throw std::invalid_argument("\nyou can not choose a meal because it's not in the list!\n");
 }
 
-void meal::set_meal_type(typo t)
+void Meal::set_meal_type(MealType t)
 {
-    switch (t)
-    {
-    case typo::breakfast:
-        meal_type = t;
-        break;
-    case typo::lunch:
-        meal_type = t;
-        break;
-    case typo::dinner:
-        meal_type = t;
-        break;
-    default:
-        meal_type = typo::unknown;
-        break;
-    }
+    mealType = t;
 }
 
-void meal::set_meal_price()
+void Meal::set_meal_price()
 {
     std::vector<float> prices;
     std::ifstream p_file(price_File);
@@ -594,48 +537,35 @@ void meal::set_meal_price()
         price = 15;
         return;
     }
-    else
+    
+    float temp_p;
+    while (p_file >> temp_p)
     {
-        int temp_p;
-        while (p_file >> temp_p)
-        {
-            prices.push_back(temp_p);
-        }
-        p_file.close();
+        prices.push_back(temp_p);
     }
+    p_file.close();
 
-    typo temp = get_meal_type();
-
-    switch (temp)
+    switch (mealType)
     {
-    case typo::breakfast:
-    {
-        price = prices[0];
+    case MealType::BREAKFAST:
+        price = prices.size() > 0 ? prices[0] : 15;
         break;
-    }
-    case typo::lunch:
-    {
-        price = prices[1];
+    case MealType::LUNCH:
+        price = prices.size() > 1 ? prices[1] : 20;
         break;
-    }
-    case typo::dinner:
-    {
-        price = prices[2];
+    case MealType::DINNER:
+        price = prices.size() > 2 ? prices[2] : 25;
         break;
-    }
-    case typo::side_dish:
-    {
-        price = prices[3];
+    case MealType::SIDE_DISH:
+        price = prices.size() > 3 ? prices[3] : 5;
         break;
-    }
-
     default:
         price = 0.0;
         break;
     }
 }
 
-void meal::set_meal_side_item(const std::string &s)
+void Meal::set_meal_side_item(const std::string &s)
 {
     std::vector<std::string> side_dishes;
     std::string side;
@@ -644,291 +574,247 @@ void meal::set_meal_side_item(const std::string &s)
     if (!side_file.is_open())
     {
         std::cout << "\ncannot open the file\n";
-        side_item = "unknown";
         return;
     }
-    else
+    
+    while (side_file >> side)
     {
-        while (side_file >> side)
-        {
-            side_dishes.push_back(side);
-        }
-        side_file.close();
+        side_dishes.push_back(side);
     }
+    side_file.close();
 
     for (const auto &element : side_dishes)
     {
         if (element == s)
         {
-            side_item = s;
-            break;
+            sideItems.push_back(s);
+            return;
         }
     }
 
     throw std::invalid_argument("\nthe side dish you chose doesn't exist in the list\n!");
 }
 
-int meal::get_meal_id() const
+int Meal::get_meal_id() const
 {
-    return meal_id;
+    return mealID;
 }
 
-float meal::get_meal_price() const
+float Meal::get_meal_price() const
 {
     return price;
 }
 
-std::string meal::get_meal_name() const
+std::string Meal::get_meal_name() const
 {
-    return meal_name;
+    return name;
 }
 
-typo meal::get_meal_type() const
+MealType Meal::get_meal_type() const
 {
-    return meal_type;
-}
-std::string meal::get_meal_side_item() const
-{
-    return side_item;
+    return mealType;
 }
 
-int meal::meal_input()
+std::string Meal::get_meal_side_item() const
 {
-    while (true) // meal_name and meal_type and also side_items
+    if (sideItems.empty())
     {
-        std::cout << "\nwhich typeo of food you want to chose?\nbreakfast\nlunch\ndinner\nside item\n?\n";
+        return "unknown";
+    }
+    return sideItems[0];
+}
+
+std::vector<std::string> Meal::get_side_items() const
+{
+    return sideItems;
+}
+
+int Meal::meal_input()
+{
+    while (true)
+    {
+        std::cout << "\nwhich type of food you want to choose?\nbreakfast\nlunch\ndinner\nside item\n?\n";
         std::string ans;
         std::cin >> ans;
+        
         if (ans == "breakfast")
         {
-            set_meal_type(typo::breakfast);
-            std::cout << "\nif you want to see the list of the food press yes else press no!";
-            std::cin >> ans;
-            if (ans == "yes" || ans == "Yes")
-            {
-                std::string choise;
-                std::ifstream file(breakfast_File, std::ios::in);
-                std::cout << "\nthe list of food you can choose from is : \n";
-                while (std::cin >> choise)
-                {
-                    std::cout << std::endl
-                              << choise << std::endl;
-                }
-                std::cout << "\nplease enter the name of the food you want to pick\n";
-                std::cin >> choise;
-                try
-                {
-                    set_meal_name(choise);
-                    std::cout << "\nyou successfully chose " << choise << "for your breakfast!\n";
-                    break;
-                }
-                catch (const std::exception &e)
-                {
-                    std::cerr << e.what() << '\n';
-                }
-            }
-            else
-            {
-                std::string choise;
-                std::cout << "\nenter the food you desire to have for your breakfast!\n";
-                std::cin >> choise;
-                try
-                {
-                    set_meal_name(choise);
-                    std::cout << "\nyou successfully chose " << choise << "for your breakfast!\n";
-                    break;
-                }
-                catch (const std::exception &e)
-                {
-                    std::cerr << e.what() << '\n';
-                }
-            }
+            set_meal_type(MealType::BREAKFAST);
         }
         else if (ans == "lunch")
         {
-            set_meal_type(typo::lunch);
-            std::cout << "\nif you want to see the list of the food press yes else press no!\n";
-            std::cin >> ans;
-            if (ans == "yes" || ans == "Yes")
-            {
-                std::string choise;
-                std::ifstream file(breakfast_File, std::ios::in);
-                std::cout << "\nthe list of food you can choose from is : \n";
-                while (std::cin >> choise)
-                {
-                    std::cout << std::endl
-                              << choise << std::endl;
-                }
-                std::cout << "\nplease enter the name of the food you want to pick\n";
-                std::cin >> choise;
-                try
-                {
-                    set_meal_name(choise);
-                    std::cout << "you successfully chose " << choise << "for your lunch!\n";
-                    break;
-                }
-                catch (const std::exception &e)
-                {
-                    std::cerr << e.what() << '\n';
-                }
-            }
-            else
-            {
-                std::string choise;
-                std::cout << "\nenter the food you desire to have for your lunch!\n";
-                std::cin >> choise;
-                try
-                {
-                    set_meal_name(choise);
-                    std::cout << "\nyou successfully chose " << choise << "for your lunch!\n";
-                    break;
-                }
-                catch (const std::exception &e)
-                {
-                    std::cerr << e.what() << '\n';
-                }
-            }
+            set_meal_type(MealType::LUNCH);
         }
         else if (ans == "dinner")
         {
-            set_meal_type(typo::dinner);
-            std::cout << "\nif you want to see the list of the food press yes else press no!\n";
-            std::cin >> ans;
-            if (ans == "yes" || ans == "Yes")
-            {
-                std::string choise;
-                std::ifstream file(breakfast_File, std::ios::in);
-                std::cout << "\nthe list of food you can choose from is : \n";
-                while (std::cin >> choise)
-                {
-                    std::cout << std::endl
-                              << choise << std::endl;
-                }
-                std::cout << "\nplease enter the name of the food you want to pick\n";
-                std::cin >> choise;
-                try
-                {
-                    set_meal_name(choise);
-                    std::cout << "you successfully chose " << choise << "for your dinner!\n";
-                    break;
-                }
-                catch (const std::exception &e)
-                {
-                    std::cerr << e.what() << '\n';
-                }
-            }
-            else
-            {
-                std::string choise;
-                std::cout << "\nenter the food you desire to have for your dinner!\n";
-                std::cin >> choise;
-                try
-                {
-                    set_meal_name(choise);
-                    std::cout << "\nyou successfully chose " << choise << "for your dinner!\n";
-                    break;
-                }
-                catch (const std::exception &e)
-                {
-                    std::cerr << e.what() << '\n';
-                }
-            }
+            set_meal_type(MealType::DINNER);
         }
         else if (ans == "side item")
         {
-            set_meal_type(typo::side_dish);
-            std::cout << "\nif you want to see the list of the side dishes press yes else press no!\n";
-            std::cin >> ans;
-            if (ans == "yes" || ans == "Yes")
-            {
-                std::string choise;
-                std::ifstream file(breakfast_File, std::ios::in);
-                std::cout << "\nthe list of items you can choose from is : \n";
-                while (std::cin >> choise)
-                {
-                    std::cout << std::endl
-                              << choise << std::endl;
-                }
-                std::cout << "\nplease enter the name of the sides you want to pick\n";
-                std::cin >> choise;
-                try
-                {
-                    set_meal_name(choise);
-                    std::cout << "\nyou successfully chose " << choise << "for your side dish!\n";
-                    break;
-                }
-                catch (const std::exception &e)
-                {
-                    std::cerr << e.what() << '\n';
-                }
-            }
-            else
-            {
-                std::string choise;
-                std::cout << "\nenter the food you desire to have for your side dish!\n";
-                std::cin >> choise;
-                try
-                {
-                    set_meal_name(choise);
-                    std::cout << "\nyou successfully chose " << choise << "for your side dish!\n";
-                    break;
-                }
-                catch (const std::exception &e)
-                {
-                    std::cerr << e.what() << '\n';
-                }
-            }
+            set_meal_type(MealType::SIDE_DISH);
         }
         else
         {
-            set_meal_type(typo::unknown);
+            set_meal_type(MealType::UNKNOWN);
             std::cout << "the type you chose doesn't exist!";
+            continue;
         }
-        if (get_meal_name() != "unkown")
+
+        std::cout << "\nif you want to see the list of the food press yes else press no!";
+        std::cin >> ans;
+        
+        std::string filename;
+        switch (get_meal_type())
         {
-            std::cout << "\nif you want change your reserve for the meal or you want to chose another type instead of the old one press yse!";
-            std::cin >> ans;
-            if (ans == "yes" || ans == "Yes")
-            {
-                std::cout << "\nyou chose to chnage!\n";
-            }
-            else
-            {
-                std::cout << "\nyou decide to end the process!\n";
-                break;
-            }
+        case MealType::BREAKFAST:
+            filename = breakfast_File;
+            break;
+        case MealType::LUNCH:
+            filename = lunch_File;
+            break;
+        case MealType::DINNER:
+            filename = dinner_File;
+            break;
+        case MealType::SIDE_DISH:
+            filename = side_dish_File;
+            break;
+        default:
+            filename = "";
         }
-        else
+
+        if (ans == "yes" || ans == "Yes")
         {
-            std::cout<<"\nbecause you didn't enter the correct food you have to try agian and nothing is reserved for you!\n";
+            std::string choice;
+            std::ifstream file(filename, std::ios::in);
+            std::cout << "\nthe list of food you can choose from is : \n";
+            while (file >> choice)
+            {
+                std::cout << choice << std::endl;
+            }
+            file.close();
+        }
+
+        std::string choice;
+        std::cout << "\nplease enter the name of the food you want to pick\n";
+        std::cin >> choice;
+        
+        try
+        {
+            set_meal_name(choice);
+            std::cout << "\nyou successfully chose " << choice << "!\n";
+            break;
+        }
+        catch (const std::exception &e)
+        {
+            std::cerr << e.what() << '\n';
         }
     }
 
-    set_meal_id(); // creating meal_id
+    // Set reserve day
+    std::cout << "\nWhich day is this meal for? (saturday/sunday/monday/tuesday/wednesday/thursday/friday)\n";
+    std::string day_str;
+    std::cin >> day_str;
+    
+    if (day_str == "saturday") setReserveDay(ReserveDay::SATURDAY);
+    else if (day_str == "sunday") setReserveDay(ReserveDay::SUNDAY);
+    else if (day_str == "monday") setReserveDay(ReserveDay::MONDAY);
+    else if (day_str == "tuesday") setReserveDay(ReserveDay::TUESDAY);
+    else if (day_str == "wednesday") setReserveDay(ReserveDay::WEDNESDAY);
+    else if (day_str == "thursday") setReserveDay(ReserveDay::THURSDAY);
+    else if (day_str == "friday") setReserveDay(ReserveDay::FRIDAY);
+    else setReserveDay(ReserveDay::SATURDAY);
+
+    set_meal_id();
+    set_meal_price();
+    
+    // Add side items
+    std::cout << "\nDo you want to add side items? (yes/no)\n";
+    std::string add_sides;
+    std::cin >> add_sides;
+    
+    if (add_sides == "yes" || add_sides == "Yes")
+    {
+        std::string side_item;
+        std::cout << "\nEnter side items (one at a time, type 'done' when finished):\n";
+        while (true)
+        {
+            std::cin >> side_item;
+            if (side_item == "done") break;
+            try
+            {
+                set_meal_side_item(side_item);
+            }
+            catch (const std::exception &e)
+            {
+                std::cerr << e.what() << '\n';
+            }
+        }
+    }
+
+    return 0;
 }
 
-std::string meal_typo_to_string(typo t)
+std::string meal_type_to_string(MealType t)
 {
     switch (t)
     {
-    case typo::breakfast:
+    case MealType::BREAKFAST:
         return "breakfast";
-    case typo::lunch:
+    case MealType::LUNCH:
         return "lunch";
-    case typo::dinner:
+    case MealType::DINNER:
         return "dinner";
-    case typo::side_dish:
+    case MealType::SIDE_DISH:
         return "side dish";
     default:
         return "unknown";
     }
 }
 
-void meal::meal_print() const
+std::string reserve_day_to_string(ReserveDay d)
+{
+    switch (d)
+    {
+    case ReserveDay::SATURDAY:
+        return "saturday";
+    case ReserveDay::SUNDAY:
+        return "sunday";
+    case ReserveDay::MONDAY:
+        return "monday";
+    case ReserveDay::TUESDAY:
+        return "tuesday";
+    case ReserveDay::WEDNESDAY:
+        return "wednesday";
+    case ReserveDay::THURSDAY:
+        return "thursday";
+    case ReserveDay::FRIDAY:
+        return "friday";
+    default:
+        return "unknown";
+    }
+}
+
+void Meal::print() const
 {
     std::cout << "\nmeal ID = " << get_meal_id()
               << "\nprice = " << get_meal_price()
-              << "\nmeal name =" << get_meal_name()
-              << "\nmeal type = " << meal_typo_to_string(meal_type)
-              << "\nside items = " << get_meal_side_item();
+              << "\nmeal name = " << get_meal_name()
+              << "\nmeal type = " << meal_type_to_string(mealType)
+              << "\nreserve day = " << reserve_day_to_string(reserveDay)
+              << "\nactive = " << (isActive ? "yes" : "no")
+              << "\nside items = ";
+    
+    if (sideItems.empty())
+    {
+        std::cout << "none";
+    }
+    else
+    {
+        for (size_t i = 0; i < sideItems.size(); i++)
+        {
+            std::cout << sideItems[i];
+            if (i < sideItems.size() - 1) std::cout << ", ";
+        }
+    }
+    std::cout << std::endl;
 }

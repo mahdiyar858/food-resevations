@@ -3,13 +3,13 @@
 #include <fstream>
 #include <vector>
 
-std::string diningHall::hall_file_1 = "hall_file_1";
-std::string diningHall::hall_file_2 = "hall_file_2";
-std::string diningHall::hall_file_3 = "hall_file_3";
-std::string diningHall::hall_file_4 = "hall_file_4";
-std::string diningHall::hall_file_5 = "hall_file_5";
+std::string DiningHall::hall_file_1 = "hall_file_1";
+std::string DiningHall::hall_file_2 = "hall_file_2";
+std::string DiningHall::hall_file_3 = "hall_file_3";
+std::string DiningHall::hall_file_4 = "hall_file_4";
+std::string DiningHall::hall_file_5 = "hall_file_5";
 
-diningHall::diningHall()
+DiningHall::DiningHall()
 {
     hall_id = 1;
     name = "d1";
@@ -17,7 +17,7 @@ diningHall::diningHall()
     capacity = 500;
 }
 
-diningHall::diningHall(const std::string &filename, const std::string &n, const std::string &a, int c)
+DiningHall::DiningHall(const std::string &filename, const std::string &n, const std::string &a, int c)
 {
     set_hall_id(filename);
     set_hall_name(n);
@@ -25,7 +25,7 @@ diningHall::diningHall(const std::string &filename, const std::string &n, const 
     set_hall_capacity(filename);
 }
 
-void diningHall::initilize_hall_files()
+void DiningHall::initilize_hall_files()
 {
     std::ofstream hall_1(hall_file_1, std::ios::app);
     std::ofstream hall_2(hall_file_2, std::ios::app);
@@ -49,7 +49,7 @@ void diningHall::initilize_hall_files()
     hall_5.close();
 }
 
-int diningHall::counting_hall_files(const std::string &filename)
+int DiningHall::counting_hall_files(const std::string &filename)
 {
     std::string person;
     std::ifstream file(filename);
@@ -71,7 +71,7 @@ int diningHall::counting_hall_files(const std::string &filename)
         i++;
     }
 
-    if (i > -1 && i < diningHall::max_capacity)
+    if (i > -1 && i < DiningHall::max_capacity)
     {
         return i;
     }
@@ -81,9 +81,9 @@ int diningHall::counting_hall_files(const std::string &filename)
     }
 }
 
-void diningHall::canceling_capacity(const std::string &filename)
+void DiningHall::canceling_capacity(const std::string &filename)
 {
-    int i =counting_hall_files(filename);
+    int i = counting_hall_files(filename);
 
     std::ofstream file(filename);
     
@@ -98,7 +98,7 @@ void diningHall::canceling_capacity(const std::string &filename)
     }
 }
 
-void diningHall::set_hall_id_capacity_name()
+void DiningHall::set_hall_id_capacity_name()
 {
     int i = 0;
     std::cout << "\nwhich hall do you want to choos ?(hall 1 to 5)\n";
@@ -202,7 +202,7 @@ void diningHall::set_hall_id_capacity_name()
     }
 }
 
-void diningHall::set_hall_id(const std::string &filename)
+void DiningHall::set_hall_id(const std::string &filename)
 {
     if (filename == "hall_file_1")
     {
@@ -228,12 +228,12 @@ void diningHall::set_hall_id(const std::string &filename)
     hall_id = 5;
 }
 
-void diningHall::set_hall_name(const std::string &n)
+void DiningHall::set_hall_name(const std::string &n)
 {
     name = n;
 }
 
-void diningHall::set_hall_address(const std::string &h)
+void DiningHall::set_hall_address(const std::string &h)
 {
     if (h == "hall one")
         address = "\nnext to the hall two\n";
@@ -259,7 +259,7 @@ void diningHall::set_hall_address(const std::string &h)
     }
 }
 
-void diningHall::set_hall_capacity(const std::string &filename)
+void DiningHall::set_hall_capacity(const std::string &filename)
 {
     if(counting_hall_files(filename) == -1)
     {
@@ -272,7 +272,7 @@ void diningHall::set_hall_capacity(const std::string &filename)
     }
 }
 
-std::string diningHall::get_hall_file()const
+std::string DiningHall::get_hall_file() const
 {
     std::string filename = get_hall_name();
 
@@ -298,27 +298,27 @@ std::string diningHall::get_hall_file()const
     }
 }
 
-int diningHall::get_hall_id() const
+int DiningHall::get_hall_id() const
 {
     return hall_id;
 }
 
-std::string diningHall::get_hall_name() const
+std::string DiningHall::get_hall_name() const
 {
     return name;
 }
 
-std::string diningHall::get_hall_address() const
+std::string DiningHall::get_hall_address() const
 {
     return address;
 }
 
-int diningHall::get_hall_capacity() const
+int DiningHall::get_hall_capacity() const
 {
     return capacity;
 }
 
-void diningHall::hall_input()
+void DiningHall::hall_input()
 {
     while (true)
     {
@@ -338,7 +338,7 @@ void diningHall::hall_input()
     }
 }
 
-void diningHall::hall_print() const
+void DiningHall::hall_print() const
 {
     std::cout << "\nhall ID = " << hall_id
               << "\nhall name = " << name
